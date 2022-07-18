@@ -26,25 +26,36 @@ jobs:
         with:
           java-version: '17'
           distribution: 'adopt-hotspot'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
+#
+#      - name: Setup gradle
+#        uses: gradle/gradle-build-action@v2 # setup gradle and use a wrapper
+#        with:
+#            gradle-version: wrapper
+#
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      - name: Build and analyze
-        run: ./gradlew build jacocoTestReport sonarqube --info
+      - name: Cache Gradle packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: analyze
         env:
-          # Needed to get some information about the pull request, if any
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # SonarCloud access token should be generated from https://sonarcloud.io/account/security/
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonarqube --info
+
+      - name: Build
+        run: ./gradlew build
+#      - name: Build and analyze
+#        run: ./gradlew build jacocoTestReport sonarqube --info
+#        env:
+#          # Needed to get some information about the pull request, if any
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          # SonarCloud access token should be generated from https://sonarcloud.io/account/security/
+#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
